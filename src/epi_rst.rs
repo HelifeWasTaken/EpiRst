@@ -1,5 +1,7 @@
 use reqwest::Client;
 use serde_json;
+use std::fs::File;
+use std::io::copy;
 
 pub struct EpiRst {
     autologin_token: String,
@@ -9,6 +11,7 @@ pub struct EpiRst {
 type EpiRstJsonReply = Result<serde_json::Value, Box<dyn std::error::Error>>;
 
 impl EpiRst {
+
     fn get_payload(&self, endpoint: &str) -> String {
         let res = String::from("https://intra.epitech.eu/")
             + &self.autologin_token
@@ -144,14 +147,11 @@ impl EpiRst {
             .collect())
     }
 
-    pub async fn download_file(&self, url: &str) -> Result<String, Box<dyn std::error::Error>> {
-        Ok(self
-            .client
-            .get(self.get_payload(url))
-            .send()
-            .await?
-            .text()
-            .await?)
+    pub async fn download_file(&self, filepath: &str, url: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let dest = File::create(filepath)?
+        let content = self.client.get(self.get_payload(url)).send().await?.text().await?
+        copy(&mut content.as_bytes(), &mut dest)?
+        Ok(())
     }
 
     pub async fn get_activity(
